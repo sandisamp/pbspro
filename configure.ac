@@ -56,6 +56,15 @@ AS_CASE([$os_id],
 AM_INIT_AUTOMAKE(am_init_string)
 AC_USE_SYSTEM_EXTENSIONS
 
+# check for ptl enable, disabled by default
+AC_ARG_ENABLE([ptl],
+    AS_HELP_STRING([--enable-ptl], [Enable package creation for ptl]))
+
+AS_IF([test "x$enable_bar" = "xyes"], [
+  dnl Do the stuff needed for enabling the feature
+])
+
+
 # Checks for programs.
 AC_PROG_AWK
 AC_PROG_YACC

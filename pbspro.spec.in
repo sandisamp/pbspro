@@ -52,6 +52,10 @@
 %define pbs_prefix /opt/pbs
 %endif
 
+%if !%{defined ptl_prefix}
+%define ptl_prefix /opt/ptl
+%endif
+
 %if !%{defined pbs_home}
 %define pbs_home /var/spool/pbs
 %endif
@@ -60,6 +64,7 @@
 %define pbs_dbuser postgres
 %endif
 
+%define pbs_ptl ptl
 %define pbs_client client
 %define pbs_execution execution
 %define pbs_server server
@@ -134,6 +139,22 @@ PBS Professional® is a fast, powerful workload manager and
 job scheduler designed to improve productivity, optimize
 utilization & efficiency, and simplify administration for
 HPC clusters, clouds and supercomputers.
+
+%package %{pbs_ptl}
+Summary: PBS ptl suite for testing
+Group: System/Base
+Requires: python-nose
+Requires: python-beautifulsoup
+Requires: python-pexpect
+Requires: python-defusedxml
+
+%description %{pbs_ptl}
+PBS Professional® is a fast, powerful workload manager and
+job scheduler designed to improve productivity, optimize
+utilization & efficiency, and simplify administration for
+HPC clusters, clouds and supercomputers.
+
+This package is intended for testing PBS.
 
 %package %{pbs_server}
 Summary: PBS Professional for a server host
@@ -405,6 +426,12 @@ fi
 %endif
 %exclude %{pbs_prefix}/unsupported/*.pyc
 %exclude %{pbs_prefix}/unsupported/*.pyo
+
+%files %{pbs_ptl}
+%defattr(-,root,root, -)
+%dir %{ptl_prefix}
+%{ptl_prefix}/test/*
+
 
 %files %{pbs_execution}
 %defattr(-,root,root, -)
