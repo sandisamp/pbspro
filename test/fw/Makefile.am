@@ -39,12 +39,59 @@
 ptlmoduledir = $(exec_prefix)/unsupported/fw/ptl
 ptlbindir = $(exec_prefix)/unsupported/fw/bin
 
+ptl_moduledir = /opt/ptl/ptl
+ptl_bindir = /opt/ptl/bin
+
+
+dist_ptl_bin_SCRIPTS= \
+	bin/pbs_as \
+	bin/pbs_benchpress \
+	bin/pbs_config \
+	bin/pbs_cov \
+	bin/pbs_loganalyzer \
+	bin/pbs_py_spawn \
+	bin/pbs_snapshot \
+	bin/pbs_stat \
+	bin/pbs_swigify
+
+ptl_module_libdir = $(ptl_moduledir)/lib
+
+dist_ptl_modulelib_PYTHON = \
+	ptl/lib/pbs_api_to_cli.py \
+	ptl/lib/pbs_ifl_mock.py \
+	ptl/lib/pbs_testlib.py \
+	ptl/lib/__init__.py
+
+ptl_moduleutilsdir = $(ptl_moduledir)utils
+dist_ptl_moduleutilsdir_PYTHON = \
+	ptl/utils/pbs_procutils.py \
+	ptl/utils/pbs_dshutils.py \
+	ptl/utils/pbs_covutils.py \
+	ptl/utils/pbs_cliutils.py \
+	ptl/utils/pbs_logutils.py \
+	ptl/utils/pbs_testsuite.py \
+	ptl/utils/pbs_fileutils.py \
+	ptl/utils/pbs_anonutils.py \
+	ptl/utils/pbs_snaputils.py \
+	ptl/utils/__init__.py
+
+ptl_moduleutilspluginsdir = $(ptl_moduleutilsdir)/plugins
+dist_ptl_moduleutilsplugins_PYTHON = \
+	ptl/utils/plugins/ptl_test_tags.py \
+	ptl/utils/plugins/ptl_test_loader.py \
+	ptl/utils/plugins/ptl_test_db.py \
+	ptl/utils/plugins/ptl_test_info.py \
+	ptl/utils/plugins/ptl_test_runner.py \
+	ptl/utils/plugins/ptl_test_data.py \
+	ptl/utils/plugins/__init__.py
+
 dist_ptlbin_SCRIPTS = \
 	bin/pbs_stat \
 	bin/pbs_loganalyzer \
 	bin/pbs_snapshot
 
 dist_ptlmodule_PYTHON = ptl/__init__.py
+dist_ptl_module_PYTHON = ptl/__init__.py
 
 ptlmodulelibdir = $(ptlmoduledir)/lib
 
@@ -84,7 +131,22 @@ install-data-hook:
 	mv pbs_stat pbs_stat.py && \
 	mv pbs_loganalyzer pbs_loganalyzer.py && \
 	mv pbs_snapshot pbs_snapshot.py
+install-data-hook:
+	cd $(DESTDIR)$(ptl_bindir) && \
+	mv pbs_stat pbs_stat.py && \
+	mv pbs_loganalyzer pbs_loganalyzer.py && \
+	mv pbs_snapshot pbs_snapshot.py && \
+	mv pbs_as pbs_as.py && \
+	mv pbs_benchpress pbs_benchpress.py && \
+	mv pbs_config pbs_config.py && \
+	mv pbs_cov pbs_cov.py && \
+	mv pbs_py_spawn pbs_py_spawn.py && \
+	mv pbs_swigify pbs_swigify.py
 
 uninstall-hook:
 	cd $(DESTDIR)$(ptlbindir) && \
 	rm -f pbs_stat.py pbs_loganalyzer.py pbs_snapshot.py
+
+uninstall-hook:
+	cd $(DESTDIR)$(ptl_bindir) && \
+	rm -f pbs_as.py pbs_config.py pbs_loganalyzer.py pbs_snapshot.py pbs_swigify.py pbs_benchpress.py pbs_cov.py pbs_py_spawn.py pbs_stat.py
