@@ -54,7 +54,7 @@ dist_ptl_bin_SCRIPTS= \
 	bin/pbs_stat \
 	bin/pbs_swigify
 
-ptl_module_libdir = $(ptl_moduledir)/lib
+ptl_modulelibdir = $(ptl_moduledir)/lib
 
 dist_ptl_modulelib_PYTHON = \
 	ptl/lib/pbs_api_to_cli.py \
@@ -62,8 +62,9 @@ dist_ptl_modulelib_PYTHON = \
 	ptl/lib/pbs_testlib.py \
 	ptl/lib/__init__.py
 
-ptl_moduleutilsdir = $(ptl_moduledir)utils
-dist_ptl_moduleutilsdir_PYTHON = \
+ptl_moduleutilsdir = $(ptl_moduledir)/utils
+
+dist_ptl_moduleutils_PYTHON = \
 	ptl/utils/pbs_procutils.py \
 	ptl/utils/pbs_dshutils.py \
 	ptl/utils/pbs_covutils.py \
