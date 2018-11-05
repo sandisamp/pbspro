@@ -41,9 +41,9 @@ import os
 os.chdir(os.path.dirname(os.path.abspath(os.path.abspath(__file__))))
 
 
-def get_reqs():
-    install_requires = open('requirements.txt').readlines()
-    return [r.strip() for r in install_requires]
+# def get_reqs():
+#    install_requires = open('requirements.txt').readlines()
+#    return [r.strip() for r in install_requires]
 
 
 def get_scripts():
@@ -60,7 +60,7 @@ setup(
     license='AGPLv3 with exceptions',
     description='PBS Pro Testing and Benchmarking Framework',
     long_description=open(os.path.abspath('./doc/intro.rst')).read(),
-    install_requires=get_reqs(),
+# install_requires=get_reqs(),
     keywords='PbsTestLab ptl pbspro',
     zip_safe=False,
     classifiers=[

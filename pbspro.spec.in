@@ -145,7 +145,7 @@ Summary: PBS ptl suite for testing
 Group: System/Base
 Requires: python-nose
 Requires: python-beautifulsoup
-Requires: python-pexpect
+Requires: pexpect
 Requires: python-defusedxml
 
 %description %{pbs_ptl}
@@ -279,8 +279,10 @@ cd build
 	--with-pbs-server-home=%{pbs_home} \
 	--with-database-user=%{pbs_dbuser}
 %{__make} %{?_smp_mflags}
+# %__python test/fw/setup.py build
 
 %install
+# %__python test/fw/setup.py install 
 cd build
 %make_install
 
@@ -331,6 +333,9 @@ ${RPM_INSTALL_PREFIX:=%{pbs_prefix}}/libexec/pbs_postinstall client \
 else
         install -D %{pbs_prefix}/libexec/pbs_init.d /etc/init.d/pbs
 fi
+
+%post %{pbs_ptl}
+python %{ptl_prefix}/setup.py install
 
 %preun %{pbs_server}
 if [ "$1" != "1" ]; then
@@ -387,6 +392,9 @@ if [ "$1" != "1" ]; then
 	rm -f /opt/modulefiles/pbs/%{version}
 fi
 
+%preun %{pbs_ptl}
+sudo pip uninstall -y pbstestlab
+
 %postun %{pbs_server}
 if [ "$1" != "1" ]; then
 	# This is an uninstall, not an upgrade.
@@ -431,6 +439,11 @@ fi
 %defattr(-,root,root, -)
 %dir %{ptl_prefix}
 %{ptl_prefix}/*
+#%exclude %{ptl_prefix}/
+%exclude %{ptl_prefix}/setup.pyo
+%exclude %{ptl_prefix}/setup.pyc
+%exclude %{ptl_prefix}/setup.py
+%exclude %{ptl_prefix}/ptl/*
 
 
 %files %{pbs_execution}

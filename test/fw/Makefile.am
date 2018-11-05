@@ -1,4 +1,3 @@
-
 #
 # Copyright (C) 1994-2018 Altair Engineering, Inc.
 # For more information, contact Altair at www.altair.com.
@@ -41,9 +40,11 @@ ptlbindir = $(exec_prefix)/unsupported/fw/bin
 
 ptl_moduledir = /opt/ptl/ptl
 ptl_bindir = /opt/ptl/bin
+ptl_prefixdir = /opt/ptl
+ptl_docdir = /opt/ptl/doc
 
 
-dist_ptl_bin_SCRIPTS= \
+dist_ptl_bin_DATA= \
 	bin/pbs_as \
 	bin/pbs_benchpress \
 	bin/pbs_config \
@@ -55,6 +56,24 @@ dist_ptl_bin_SCRIPTS= \
 	bin/pbs_swigify
 
 ptl_modulelibdir = $(ptl_moduledir)/lib
+
+dist_ptl_doc_DATA = \
+	doc/caveats.rst \
+	doc/commands.rst \
+	doc/howtotest.rst \
+	doc/index.rst  \
+	doc/install.rst \
+	doc/intro.rst  \
+	doc/make.bat \
+	doc/ptl.rst \
+	doc/tutorial.rst \
+	doc/Makefile
+
+dist_ptl_doc_PYTHON = \
+	doc/conf.py
+
+dist_ptl_prefix_PYTHON = \
+	setup.py
 
 dist_ptl_modulelib_PYTHON = \
 	ptl/lib/pbs_api_to_cli.py \
@@ -132,17 +151,18 @@ install-data-hook:
 	mv pbs_stat pbs_stat.py && \
 	mv pbs_loganalyzer pbs_loganalyzer.py && \
 	mv pbs_snapshot pbs_snapshot.py
+
 install-data-hook:
 	cd $(DESTDIR)$(ptl_bindir) && \
-	mv pbs_stat pbs_stat.py && \
-	mv pbs_loganalyzer pbs_loganalyzer.py && \
-	mv pbs_snapshot pbs_snapshot.py && \
-	mv pbs_as pbs_as.py && \
-	mv pbs_benchpress pbs_benchpress.py && \
-	mv pbs_config pbs_config.py && \
-	mv pbs_cov pbs_cov.py && \
-	mv pbs_py_spawn pbs_py_spawn.py && \
-	mv pbs_swigify pbs_swigify.py
+	rm -f pbs_stat.py && \
+	rm -f pbs_loganalyzer.py && \
+	rm -f pbs_snapshot.py && \
+	rm -f pbs_as.py && \
+	rm -f pbs_benchpress.py && \
+	rm -f pbs_config.py && \
+	rm -f pbs_cov.py && \
+	rm -f pbs_py_spawn.py && \
+	rm -f pbs_swigify.py
 
 uninstall-hook:
 	cd $(DESTDIR)$(ptlbindir) && \
