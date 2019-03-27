@@ -57,7 +57,8 @@ class TestMomDynRes(TestFunctional):
 
         for i, name in enumerate(resc_name):
             attr = {"type": resc_type[i], "flag": resc_flag[i]}
-            self.server.manager(MGR_CMD_CREATE, RSC, attr, id=name)
+            self.server.manager(MGR_CMD_CREATE, RSC, attr,
+                                id=name, expect=True)
 
             dest_file = self.mom.add_mom_dyn_res(name, script_body[i],
                                                  prefix="mom_resc",
@@ -123,7 +124,7 @@ class TestMomDynRes(TestFunctional):
         jid = self.server.submit(j)
 
         # The job should run
-        self.server.expect(JOB, {'job_state': 'R'}, interval=1, id=jid)
+        self.server.expect(JOB, {'job_state': 'R'}, id=jid)
 
         # Submit a job that requests different mom dynamic resource
         # not return from script
@@ -167,7 +168,7 @@ class TestMomDynRes(TestFunctional):
         jid = self.server.submit(j)
 
         # The job should run
-        self.server.expect(JOB, {'job_state': 'R'}, interval=1, id=jid)
+        self.server.expect(JOB, {'job_state': 'R'}, id=jid)
 
     def test_res_string_correct_value(self):
         """
@@ -188,7 +189,7 @@ class TestMomDynRes(TestFunctional):
         jid = self.server.submit(j)
 
         # The job should run
-        self.server.expect(JOB, {'job_state': 'R'}, interval=1, id=jid)
+        self.server.expect(JOB, {'job_state': 'R'}, id=jid)
 
     def test_res_float_value(self):
         """
@@ -223,7 +224,7 @@ class TestMomDynRes(TestFunctional):
         # The job should run
         self.server.expect(JOB, {'job_state': 'R',
                            'Resource_List.'+resc_name[0]: '2'},
-                           id=jid, attrop=PTL_AND, interval=1)
+                           id=jid, attrop=PTL_AND)
 
     def test_multiple_res_valid_value(self):
         """
@@ -246,7 +247,7 @@ class TestMomDynRes(TestFunctional):
         jid = self.server.submit(j)
 
         # The job should run
-        self.server.expect(JOB, {'job_state': 'R'}, interval=1, id=jid)
+        self.server.expect(JOB, {'job_state': 'R'}, id=jid)
 
         # Submit a job that requests more value
         # than available for both mom resources.
@@ -306,7 +307,7 @@ class TestMomDynRes(TestFunctional):
         jid = self.server.submit(j)
 
         # The job should run
-        self.server.expect(JOB, {'job_state': 'R'}, interval=1, id=jid)
+        self.server.expect(JOB, {'job_state': 'R'}, id=jid)
 
         # Check for the expected error message throwing by PBS
         try:
@@ -333,7 +334,7 @@ class TestMomDynRes(TestFunctional):
         jid = self.server.submit(j)
 
         # The job should run
-        self.server.expect(JOB, {'job_state': 'R'}, interval=1, id=jid)
+        self.server.expect(JOB, {'job_state': 'R'}, id=jid)
 
         # Change script during job run
         change_res = "/bin/echo 1"
@@ -354,7 +355,8 @@ class TestMomDynRes(TestFunctional):
         """
 
         attr = {"type": "long", "flag": "h"}
-        self.server.manager(MGR_CMD_CREATE, RSC, attr, id="foo")
+        self.server.manager(MGR_CMD_CREATE, RSC, attr,
+                            id="foo", expect=True)
         scr_body = ['echo "10"', 'exit 0']
         home_dir = os.path.expanduser("~")
         fp = self.mom.add_mom_dyn_res("foo", script_body=scr_body,
@@ -387,7 +389,7 @@ class TestMomDynRes(TestFunctional):
         # This should make loading of this file fail in all cases.
         # Create the dirctory name with a space in it, to make sure PBS parses
         # it correctly.
-        dir_temp = self.du.mkdtemp(mode=0766, dir=home_dir, suffix=' tmp')
+        dir_temp = self.du.create_temp_dir(mode=0766, dir=home_dir, suffix=' tmp')
         fp = self.mom.add_mom_dyn_res("foo", script_body=scr_body,
                                       dirname=dir_temp)
 

@@ -47,7 +47,8 @@ class TestServerDynRes(TestFunctional):
         TestFunctional.setUp(self)
         # Setup node
         a = {'resources_available.ncpus': 4}
-        self.server.manager(MGR_CMD_SET, NODE, a, id=self.mom.shortname)
+        self.server.manager(MGR_CMD_SET, NODE, a,
+                            id=self.mom.shortname, expect=True)
 
     def check_access_log(self, fp, exist=True):
         """
@@ -77,7 +78,8 @@ class TestServerDynRes(TestFunctional):
         attr = {}
         for i, name in enumerate(resname):
             attr["type"] = restype[i]
-            self.server.manager(MGR_CMD_CREATE, RSC, attr, id=name)
+            self.server.manager(MGR_CMD_CREATE, RSC, attr, id=name,
+                                expect=True)
             # Add resource to sched_config's 'resources' line
             self.scheduler.add_resource(name)
             dest_file = self.scheduler.add_server_dyn_res(name,
@@ -561,7 +563,7 @@ class TestServerDynRes(TestFunctional):
         # This should make loading of this file fail in all cases
         # Create the dirctory name with a space in it, to make sure PBS parses
         # it correctly.
-        dir_temp = self.du.mkdtemp(mode=0766, dir=home_dir, suffix=' tmp')
+        dir_temp = self.du.create_temp_dir(mode=0766, dir=home_dir, suffix=' tmp')
         fp = self.scheduler.add_server_dyn_res("foo", scr_body,
                                                dirname=dir_temp,
                                                validate=False)
