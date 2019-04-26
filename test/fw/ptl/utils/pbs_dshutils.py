@@ -1928,7 +1928,7 @@ class DshUtils(object):
         return tmpfile
 
     def create_temp_dir(self, hostname=None, suffix='', prefix='PtlPbs',
-                        dir=None, asuser=None, asgroup=None, mode=None,
+                        dirname=None, asuser=None, asgroup=None, mode=None,
                         level=logging.INFOCLI2):
         """
         Create a temp dir by calling ``tempfile.mkdtemp``
@@ -1976,12 +1976,12 @@ class DshUtils(object):
             # create a temp dir just to get temp dir name with absolute path
             tmpdir2 = tempfile.mkdtemp(suffix, prefix, dir)
             # copy the orginal temp as new temp dir
-            self.run_copy(hostname, tmpdir, tmpdir2, runas=asuser, 
+            self.run_copy(hostname, tmpdir, tmpdir2, runas=asuser,
                         preserve_permission=False, level=level)
             # remove original temp dir
             os.rmdir(tmpdir)
             self.tmpdirlist.append(tmpdir2)
-            return tmpdir2 
+            return tmpdir2
         self.tmpdirlist.append(tmpdir)
         return tmpdir
 
