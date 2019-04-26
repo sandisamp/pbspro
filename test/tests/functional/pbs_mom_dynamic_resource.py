@@ -388,7 +388,7 @@ class TestMomDynRes(TestFunctional):
         # Create the dirctory name with a space in it, to make sure PBS parses
         # it correctly.
         dir_temp = self.du.create_temp_dir(mode=0766, dirname=home_dir,
-                                        suffix=' tmp')
+                                           suffix=' tmp')
         fp = self.mom.add_mom_dyn_res("foo", script_body=scr_body,
                                       dirname=dir_temp)
 

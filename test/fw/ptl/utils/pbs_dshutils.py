@@ -1977,7 +1977,7 @@ class DshUtils(object):
             tmpdir2 = tempfile.mkdtemp(suffix, prefix, dir)
             # copy the orginal temp as new temp dir
             self.run_copy(hostname, tmpdir, tmpdir2, runas=asuser,
-                        preserve_permission=False, level=level)
+                          preserve_permission=False, level=level)
             # remove original temp dir
             os.rmdir(tmpdir)
             self.tmpdirlist.append(tmpdir2)
