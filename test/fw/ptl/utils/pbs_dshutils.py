@@ -1948,7 +1948,7 @@ class DshUtils(object):
         :param level: logging level, defaults to INFOCLI2
         """
         # create a temp dir as current user
-        tmpdir = tempfile.mkdtemp(suffix, prefix, dir)
+        tmpdir = tempfile.mkdtemp(suffix, prefix, dirname)
 
         # if temp dir to be created on remote host
         if not self.is_localhost(hostname):
@@ -1956,8 +1956,8 @@ class DshUtils(object):
                 # by default mkstemp creates dir with 0600 permission
                 # to create dir as different user first change the dir
                 # permission to 0644 so that other user has read permission
-                self.chmod(hostname, tmpdir, mode=0644)
-                # copy temp dir created  on local host to remote host
+                self.chmod(path=tmpdir, mode=0755)
+                # copy temp dir created on local host to remote host
                 # as different user
                 self.run_copy(hostname, tmpdir, tmpdir, runas=asuser,
                               preserve_permission=False, level=level)
@@ -1971,10 +1971,10 @@ class DshUtils(object):
             # by default mkdtemp creates dir with 0600 permission
             # to create dir as different user first change the dir
             # permission to 0644 so that other user has read permission
-            self.chmod(hostname, tmpdir, mode=0644)
+            self.chmod(path=tmpdir, mode=0755)
             # since we need to create as differnt user than current user
             # create a temp dir just to get temp dir name with absolute path
-            tmpdir2 = tempfile.mkdtemp(suffix, prefix, dir)
+            tmpdir2 = tempfile.mkdtemp(suffix, prefix, dirname)
             # copy the orginal temp as new temp dir
             self.run_copy(hostname, tmpdir, tmpdir2, runas=asuser,
                           preserve_permission=False, level=level)
