@@ -1949,10 +1949,10 @@ class DshUtils(object):
         """
         # create a temp dir as current user
         tmpdir = tempfile.mkdtemp(suffix, prefix, dirname)
-        if dirname != None:
+        if dirname is not None:
             dirname = str(dirname)
             self.run_copy(hostname, tmpdir, dirname, runas=asuser,
-                      preserve_permission=False, level=level)
+                          preserve_permission=False, level=level)
             tmpdir = dirname + tmpdir[4:]
 
         # if temp dir to be created on remote host
