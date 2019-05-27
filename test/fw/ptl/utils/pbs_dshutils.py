@@ -1948,7 +1948,7 @@ class DshUtils(object):
         :param level: logging level, defaults to INFOCLI2
         """
         # create a temp dir as current user
-        tmpdir = tempfile.mkdtemp(suffix, prefix, dirname)
+        tmpdir = tempfile.mkdtemp(suffix, prefix, "/tmp")
         if dirname is not None:
             dirname = str(dirname)
             self.run_copy(hostname, tmpdir, dirname, runas=asuser,
