@@ -42,7 +42,7 @@ class TestQstat(TestFunctional):
     """
     This test suite validates output of qstat with various options
     """
-
+    @requirements(num_servers=1, num_moms=2, no_mom_on_server=True)
     def test_qstat_pt(self):
         """
         Test that checks correct output for qstat -pt
@@ -79,7 +79,8 @@ class TestQstat(TestFunctional):
                 sj_escaped + r'\s+\S+\s+\S+\s+(--\s+[RQ]|100\s+X)\s+\S+',
                 qstat_out)
             self.assertIsNotNone(match, 'Job output does not match')
-
+    
+    @requirements(num_servers=1, num_moms=2, no_mom_on_server=True)
     def test_qstat_qselect(self):
         """
         Test to check that qstat can handle more than 150 jobs query at a time

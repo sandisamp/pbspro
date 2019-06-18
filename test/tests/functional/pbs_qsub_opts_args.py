@@ -47,6 +47,7 @@ class TestQsubOptionsArguments(TestFunctional):
     """
     fn = None
 
+    @requirements(num_moms=2)
     def setUp(self):
         TestFunctional.setUp(self)
         script = '/bin/hostname'
@@ -54,6 +55,7 @@ class TestQsubOptionsArguments(TestFunctional):
         self.qsub_cmd = os.path.join(
             self.server.pbs_conf['PBS_EXEC'], 'bin', 'qsub')
 
+    @requirements(num_moms=3)
     def validate_error(self, err):
         ret_msg = 'qsub: Failed to save job/resv, '\
             'refer server logs for details'
@@ -91,6 +93,7 @@ bhtiusabsdlg' % (os.environ['HOME'])
         failed = rv['rc'] == 2 and rv['err'][0].split(' ')[0] == 'usage:'
         self.assertTrue(failed, 'qsub should have failed, but did not fail')
 
+    @requirements(num_moms=1,no_mom_on_server=True)
     def test_qsub_with_script_dashes(self):
         """
         submit a job with a script and dashes
@@ -109,6 +112,7 @@ bhtiusabsdlg' % (os.environ['HOME'])
         failed = rv['rc'] == 2 and rv['err'][0].split(' ')[0] == 'usage:'
         self.assertTrue(failed, 'qsub should have failed, but did not fail')
 
+    @requirements(no_comm_on_server=True)
     def test_qsub_with_script(self):
         """
         submit a job with only a script

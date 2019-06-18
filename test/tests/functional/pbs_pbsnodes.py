@@ -54,7 +54,7 @@ class TestPbsnodes(TestFunctional):
         self.pbsnodes = [os.path.join(self.pbs_exec, 'bin', 'pbsnodes')]
         self.svrname = self.server.pbs_server_name
         self.hostA = self.moms.values()[0].shortname
-
+    
     def common_setUp(self):
         """
         Common setUp for tests test_pbsnodes_as_user and test_pbsnodes_as_root
@@ -64,6 +64,7 @@ class TestPbsnodes(TestFunctional):
         self.server.manager(MGR_CMD_CREATE, NODE, id=self.mom.shortname)
         self.server.expect(NODE, {'state': 'free'})
 
+    @requirements(num_servers=2,num_moms=2)
     def get_newnode_attrs(self, user):
         """
         return expected values of attributes on a newly created node
@@ -82,6 +83,7 @@ class TestPbsnodes(TestFunctional):
 
         return expect_dict
 
+    @requirements(num_servers=2,num_moms=2,no_mom_on_server=True)
     def verify_node_dynamic_val(self, last_state_change_time, available_ncpus,
                                 pcpus, sharing, available_mem):
         """
@@ -132,6 +134,7 @@ class TestPbsnodes(TestFunctional):
         else:
             self.fail("resources_available.mem not having positive int value")
 
+    @requirements(num_servers=2,num_moms=2,no_comm_on_server=True)
     def test_pbsnodes_S(self):
         """
         This verifies that 'pbsnodes -S' results in a usage message
@@ -142,6 +145,7 @@ class TestPbsnodes(TestFunctional):
         self.assertIn('usage:', out['err'][
                       0], 'usage not found in error message')
 
+    @requirements(num_servers=2,num_moms=2,no_comm_on_server=True,no_comm_on_mom=True)
     def test_pbsnodes_S_host(self):
         """
         This verifies that 'pbsnodes -S <host>' results in an output
@@ -155,6 +159,7 @@ class TestPbsnodes(TestFunctional):
                 hdr, out1['out'][0],
                 "header %s not found in output" % hdr)
 
+    @requirements(num_servers=2,num_moms=1,no_comm_on_mom=True)
     def test_pbsnodes_aS(self):
         """
         This verifies that 'pbsnodes -aS' results in an output
@@ -168,6 +173,7 @@ class TestPbsnodes(TestFunctional):
                 hdr, out2['out'][0],
                 "header %s not found in output" % hdr)
 
+    @requirements(num_servers=2,num_moms=1,no_mom_on_server=True)
     def test_pbsnodes_av(self):
         """
         This verifies the values of last_used_time in 'pbsnodes -av'

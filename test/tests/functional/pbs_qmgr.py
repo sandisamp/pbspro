@@ -46,7 +46,7 @@ class TestQmgr(TestFunctional):
     """
     Test suite for PBSPro's qmgr command
     """
-
+    @requiremets(num_moms=2,no_mom_on_server=True)
     def __check_whitespace_prefix(self, line):
         """
         Check whether the whitespace prefix for the line specified is correct
@@ -129,7 +129,8 @@ class TestQmgr(TestFunctional):
             if vndef_file is not None:
                 self.mom.delete_vnodes()
                 self.server.manager(MGR_CMD_DELETE, VNODE, id=nodename)
-
+    
+    @requiremets(num_moms=2,no_mom_on_server=True)
     def test_multi_attributes(self):
         """
         Test to verify that if multiple attributes are set
@@ -160,6 +161,7 @@ class TestQmgr(TestFunctional):
             self.assertTrue(msg in e.msg[0])
         self.server.expect(NODE, 'queue', op=UNSET, id=self.mom.shortname)
 
+    @requiremets(num_moms=2,no_mom_on_server=True)
     def set_and_test_comment(self, comment):
         """
         Set the node's comment, then print it and re-import it
@@ -186,13 +188,15 @@ class TestQmgr(TestFunctional):
                                     cmd=qmgr_cmd_set, as_script=True)
             self.assertEqual(ret_s['rc'], 0)
 
+    @requiremets(num_moms=2,no_mom_on_server=True)
     def test_string_single_quoting(self):
         """
         Test to verify that if a string attribute has a double quote,
         the value is single-quoted correctly
         """
         self.set_and_test_comment('This is "my" node.')
-
+    
+    @requiremets(num_moms=2,no_mom_on_server=True)
     def test_string_double_quoting(self):
         """
         Test to verify that if a string attribute has a quote, the value
