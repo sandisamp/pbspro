@@ -1,8 +1,8 @@
 #!/bin/bash -xe
 
-if [ "x${BUILD_MODE}" == "xsanitize" ]; then
-   exit 0
-fi
+# if [ "x${BUILD_MODE}" == "xsanitize" ]; then
+#    exit 0
+# fi
 . /etc/os-release
 if [ "x${ID}" == "xcentos" ]; then
     yum -y install python3
