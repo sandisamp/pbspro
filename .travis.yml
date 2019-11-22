@@ -9,10 +9,10 @@ addons:
 services:
   - docker
 env:
-  - OS_TYPE=centos:7
-  - OS_TYPE=opensuse/leap:15
-  - OS_TYPE=ubuntu:18.04
-  - OS_TYPE=debian:9
+  - OS_TYPE=centos:7 BUILD_MODE=non_sanitize
+  - OS_TYPE=opensuse/leap:15 BUILD_MODE=non_sanitize
+  - OS_TYPE=ubuntu:18.04 BUILD_MODE=non_sanitize
+  - OS_TYPE=debian:9 BUILD_MODE=non_sanitize
   - OS_TYPE=centos:7 BUILD_MODE=sanitize
 before_install:
   - .github/runchecks
@@ -24,6 +24,6 @@ before_install:
   - docker ps -a
   - export DOCKER_EXEC="docker exec -it ${DOCKER_EXTRA_ARG} --privileged testdev"
 install:
-  - if [ "x${BUILD_MODE}" == "xsanitize" ];then ${DOCKER_EXEC} .travis/do_sanitize_mode.sh; fi
-  - if [ "x${BUILD_MODE}" != "xsanitize" ] && ${DOCKER_EXEC} .travis/do.sh; fi
+  - '[ "x${BUILD_MODE}" == "xsanitize" ] && ${DOCKER_EXEC} .travis/do_sanitize_mode.sh'
+  - '[ "x${BUILD_MODE}" == "xsanitize" ] && ${DOCKER_EXEC} .travis/do.sh'
 script: true
