@@ -25,5 +25,5 @@ before_install:
   - export DOCKER_EXEC="docker exec -it ${DOCKER_EXTRA_ARG} --privileged testdev"
 install:
   - '[ "x${BUILD_MODE}" == "xsanitize" ] && ${DOCKER_EXEC} .travis/do_sanitize_mode.sh'
-  - '[ "x${BUILD_MODE}" == "xsanitize" ] && ${DOCKER_EXEC} .travis/do.sh'
+  - '[ "x${BUILD_MODE}" != "xsanitize" ] && ${DOCKER_EXEC} .travis/do.sh'
 script: true
