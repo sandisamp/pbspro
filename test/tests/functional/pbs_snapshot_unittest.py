@@ -201,7 +201,7 @@ class TestPBSSnapshot(TestFunctional):
         # pbs_snapshot prints to stdout only the following:
         #     "Snapshot available at: <path to tarball>"
         self.assertTrue(len(ret['out']) > 0)
-        snap_out = ret['out'][0]
+        snap_out = ret['out'][-1]
         output_tar = snap_out.split(":")[1]
         output_tar = output_tar.strip()
 
