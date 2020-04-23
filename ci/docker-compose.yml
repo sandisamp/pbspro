@@ -1,20 +1,21 @@
 version: '3'
 
 services:
-  pbs-build:
-    image: ${CONTAINER_PLATFORM}
-    volumes:
-      - ../:/pbssrc
-      - ./:/src
-      - ./logs:/logs
-    entrypoint: /src/docker-entrypoint
-    env_file: .env
-    networks:
-      ci:
-        aliases:
-          - pbs_server
-    hostname: pbs.ci
-    privileged: true
+    pbs-build:
+      image: ${CONTAINER_PLATFORM}
+      volumes:
+        - ../:/pbssrc
+        - ./:/src
+        - ./logs:/logs
+        - ./etc:/workspace/etc
+      entrypoint: /src/docker-entrypoint
+      env_file: .env
+      networks:
+        ci:
+          aliases:
+            - pbs_server
+      hostname: pbs.ci
+      privileged: true
 
 networks:
   ci:

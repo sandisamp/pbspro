@@ -1,0 +1,31 @@
+#!/bin/bash -ex
+
+curl -Lks https://raw.githubusercontent.com/PBSPro/pbspro/master/pbspro.spec > /tmp/pbspro.spec
+
+case "${1}" in
+	centos8)
+		dnf -y builddep /tmp/pbspro.spec
+		dnf -y install $(rpmspec --requires -q /tmp/pbspro.spec | awk '{print $1}'| sort -u | grep -vE '^(/bin/)?(ba)?sh$')
+		;;
+	centos7)
+		yum-builddep -y /tmp/pbspro.spec
+		yum -y install $(rpmspec --requires -q /tmp/pbspro.spec | awk '{print $1}'| sort -u | grep -vE '^(/bin/)?(ba)?sh$')
+		;;
+	opensuse15)
+		zypper -n install --force-resolution $(rpmspec --buildrequires -q /tmp/pbspro.spec | sort -u | grep -vE '^(/bin/)?(ba)?sh$')
+		zypper -n install --force-resolution $(rpmspec --requires -q /tmp/pbspro.spec | sort -u | grep -vE '^(/bin/)?(ba)?sh$')
+		;;
+	ubuntu18)
+		echo "Nothing to do here, its already done in sys-packages part"
+		;;
+	*)
+		echo "Unknown platform!"
+		exit 1
+		;;
+esac
+
+# Install pip using get-pip.py for latest version all platform
+curl -Lks https://bootstrap.pypa.io/get-pip.py | python3 - --trusted-host pypi.org
+
+curl -Lks https://raw.githubusercontent.com/PBSPro/pbspro/master/test/fw/requirements.txt > /tmp/requirements.txt
+pip3 install --trusted-host pypi.org --trusted-host files.pythonhosted.org -r /tmp/requirements.txt
