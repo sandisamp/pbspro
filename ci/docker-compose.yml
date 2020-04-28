@@ -8,13 +8,18 @@ services:
         - ./:/src
         - ./logs:/logs
         - ./etc:/workspace/etc
-      entrypoint: /src/docker-entrypoint
+      entrypoint: /workspace/etc/container-init "/src/docker-entrypoint"
       env_file: .env
+      environment:
+        - container=docker
+        - TERM=xterm
+        - TZ=UTC
       networks:
         ci:
           aliases:
             - pbs_server
       hostname: pbs.ci
+      user: root
       privileged: true
 
 networks:

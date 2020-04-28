@@ -30,8 +30,9 @@ useradd -K UMASK=0022 -m -s /bin/bash -u 4368 -g tstgrp01 -G tstgrp01 pbsuser7
 useradd -K UMASK=0022 -m -s /bin/bash -u 11000 -g tstgrp00 -G tstgrp00 tstusr00
 useradd -K UMASK=0022 -m -s /bin/bash -u 11001 -g tstgrp00 -G tstgrp00 tstusr01
 
-case "${1}" in
-centos8)
+. /etc/os-release
+
+if [ "x${ID}" == "xcentos" -a "x${VERSION_ID}" == "x8" ]; then
   dnf -y clean all
   dnf -y install 'dnf-command(config-manager)'
   dnf -y config-manager --set-enabled PowerTools
@@ -49,12 +50,10 @@ centos8)
     systemd systemd-sysv libcap rsyslog \
     openssh-clients openssh-server valgrind-devel valgrind libasan \
     llvm bc gzip gdb rsync wget curl ccache bind-utils vim iputils pam-devel
-  /workspace/etc/install-pbs-deps centos8
   dnf -y clean all
   rpmdev-setuptree
   __systemd_paths='/etc/systemd/system /usr/lib/systemd/system'
-  ;;
-centos7)
+elif [ "x${ID}" == "xcentos" -a "x${VERSION_ID}" == "x7" ]; then
   yum -y clean all
   rpm --import https://package.perforce.com/perforce.pubkey &&
     {
@@ -78,12 +77,10 @@ centos7)
     systemd systemd-sysv libcap rsyslog \
     openssh-clients openssh-server valgrind-devel valgrind libasan pam-devel \
     llvm bc gzip gdb rsync wget curl ccache bind-utils vim iputils python2-pip helix-cli
-  /workspace/etc/install-pbs-deps centos7
   yum -y clean all
   rpmdev-setuptree
   __systemd_paths='/etc/systemd/system /usr/lib/systemd/system'
-  ;;
-opensuse15)
+elif [ "x${ID}" == "xopensuse" -o "x${ID}" == "xopensuse-leap" ]; then
   __on="$(grep -oP '(?<=^NAME=").*(?=")' /etc/os-release)"
   __ov="$(grep -oP '(?<=^VERSION=").*(?=")' /etc/os-release)"
   zypper -n addrepo -ceKfG "https://download.opensuse.org/repositories/devel:tools/${__on// /_}_${__ov// /_}/devel:tools.repo"
@@ -103,14 +100,14 @@ opensuse15)
     expect perl-App-cpanminus perl-Parse-PMFile hostname bind-utils \
     systemd systemd-sysvinit libcap-progs iputils rsyslog openssh pam-devel \
     valgrind-devel valgrind llvm gdb rsync wget ccache bc gzip python-pip
-  /workspace/etc/install-pbs-deps opensuse15
   zypper -n clean -mMa
   zypper -n rr devel_tools
   rpmdev-setuptree
   __systemd_paths='/etc/systemd/system /usr/lib/systemd/system'
-  ;;
-ubuntu18 | ubuntu16)
-  export DEBIAN_FRONTEND=noninteractive
+elif [ "x${ID}" == "xubuntu" ]; then
+  if [ "x${DEBIAN_FRONTEND}" == "x" ]; then
+    export DEBIAN_FRONTEND=noninteractive
+  fi
   apt -y update
   apt -y upgrade
   apt -y install git build-essential gcc g++ make dpkg-dev m4 \
@@ -133,18 +130,12 @@ ubuntu18 | ubuntu16)
   fi
   apt -y update
   apt -y install helix-cli
-  /workspace/etc/install-pbs-deps ubuntu18
   __systemd_paths='/etc/systemd/system /lib/systemd/system'
   apt -y autoremove
   apt -y clean
   rm -rf /var/lib/apt/list/*
   mkdir -p /root/rpmbuild/SOURCES
-  ;;
-*)
-  echo "Unknown platform!"
-  exit 1
-  ;;
-esac
+fi
 
 # Install pip, requests and sh python modules
 set -ex &&
@@ -165,6 +156,7 @@ find ${__systemd_paths} -path '*.wants/*' \
   -not -name '*dbus*' \
   -exec rm -fv {} \;
 
+cp /workspace/etc/ci-script-wrapper.service /etc/systemd/system
 systemctl set-default multi-user.target
 
 systemctl enable sshd || systemctl enable ssh
@@ -179,14 +171,13 @@ systemctl unmask getty.target
 systemctl unmask console-getty
 systemctl enable getty.target
 systemctl enable console-getty
+systemctl enable ci-script-wrapper
 
 cp /workspace/etc/container-env-setup.sh /etc/profile.d/0container-env-setup.sh
-# cp /workspace/etc/sudoers-overrides /etc/sudoers.d/container-overrides
-# cp /workspace/etc/ssh_keypair_rsa /root/id_rsa
-# cp /workspace/etc/ssh_keypair_rsa.pub /root/id_rsa.pub
+cp /workspace/etc/sudoers-overrides /etc/sudoers.d/container-overrides
+
 echo '' >/etc/security/limits.conf
 rm -f /etc/security/limits.d/*.conf
-# chmod +x /pod-script-wrapper
 rm -rf ~/.ssh
 mkdir --mode=700 ~/.ssh
 mv ~/id_rsa* ~/.ssh/
@@ -199,8 +190,6 @@ cat /etc/profile.d/0container-env-setup.sh >>/root/.profile
 cat /etc/profile.d/0container-env-setup.sh >>/root/.bash_profile
 cat /etc/profile.d/0container-env-setup.sh >>/root/.bashrc
 for user in $(awk -F: '/^(pbs|tst)/ {print $1}' /etc/passwd); do
-  rm -rf /home/${user}/.ssh
-  cp -rfp ~/.ssh /home/${user}/
   chown -R ${user}: /home/${user}/.ssh
   echo "${user}:pbs" | chpasswd
   cat /etc/profile.d/0container-env-setup.sh >>/home/${user}/.profile
@@ -208,9 +197,6 @@ for user in $(awk -F: '/^(pbs|tst)/ {print $1}' /etc/passwd); do
   cat /etc/profile.d/0container-env-setup.sh >>/home/${user}/.bashrc
   chown ${user}: /home/${user}/.bashrc /home/${user}/.profile /home/${user}/.bash_profile
 done
-echo 'Host *' >>/etc/ssh/ssh_config
-echo '  StrictHostKeyChecking no' >>/etc/ssh/ssh_config
-echo 'PermitRootLogin yes' >>/etc/ssh/sshd_config
 
 rm -rf ~/.cache ~/.cpanm /var/{log,cache} /tmp /var/tmp /run/*.pid /var/run/*.pid
 mkdir -p --mode=0755 /var/{log,cache}

@@ -1,11 +1,15 @@
-#!/bin/bash
+#!/bin/bash -x
 
-# set environment var file 
+if [ $(echo ${CONTAINER_PLATFORM} | grep 'ci_pbs' | grep -v grep | wc -l) -ne 1 ]; then
+	/workspace/etc/install-system-packages | tee /logs/build
+fi
+
+# set environment var file
 touch /env-file
-set > /env-file
+set >/env-file
 
 capsh --print | grep -Eq '*cap_sys_admin*'
-if [ $? -eq 0 -a $(id -u) -eq 0 -a $(id -g) -eq 0 -a $# -eq 0 ]; then
+if [ $? -eq 0 ]; then
 	if [ -x "/usr/lib/systemd/systemd" ]; then
 		exec /usr/lib/systemd/systemd --system
 	elif [ -x "/lib/systemd/systemd" ]; then

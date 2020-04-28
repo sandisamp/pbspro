@@ -3,28 +3,6 @@
 workdir=/src
 logdir=/logs
 
-if [ $(echo ${CONTAINER_PLATFORM} | grep 'ci_pbs' | grep -v grep | wc -l) -ne 1 ]; then
-    /workspace/etc/install-system-packages centos7 | tee ${logdir}/build
-fi
-
-# touch /env-file
-# set > /env-file
-/workspace/etc/container-env-setup.sh
-capsh --print | grep -Eq '*cap_sys_admin*'
-if [ $? -eq 0 -a $(id -u) -eq 0 -a $(id -g) -eq 0 -a $# -eq 0 ]; then
-    if [ -x "/usr/lib/systemd/systemd" ]; then
-        /usr/lib/systemd/systemd --system &
-    elif [ -x "/lib/systemd/systemd" ]; then
-        /lib/systemd/systemd --system &
-    elif [ -x "/usr/sbin/init" ]; then
-        /usr/sbin/init &
-    elif [ -x "/sbin/init" ]; then
-        /sbin/init &
-    else
-        echo "Couldn't start container in systemd mode, starting in default mode"
-    fi
-fi
-
 cd /pbssrc
 ${workdir}/do.sh 1 | tee ${logdir}/build
 commit_id=$(cd /pbssrc && /usr/bin/git log --oneline -1 | awk -F' ' '{print $1}')
