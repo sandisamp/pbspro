@@ -11,9 +11,8 @@ services:
       entrypoint: /workspace/etc/container-init "/src/docker-entrypoint"
       env_file: .env
       environment:
-        - container=docker
-        - TERM=xterm
-        - TZ=UTC
+        - CLUSTER_INFO='SERVER:${CONTAINER_PLATFORM}'
+        - NODE_TYPE='server'
       networks:
         ci:
           aliases:
