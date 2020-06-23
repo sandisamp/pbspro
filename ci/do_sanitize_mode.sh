@@ -47,7 +47,7 @@ dnf -y install epel-release
 dnf -y update
 dnf -y install yum-utils rpmdevtools libasan llvm
 rpmdev-setuptree
-dnf -y install python3-pip sudo which net-tools man-db time.x86_64
+dnf -y install python3-pip sudo which net-tools man-db time.x86_64 git
 dnf -y builddep ./*.spec
 # source install swig
 dnf -y install gcc-c++ byacc pcre-devel
