@@ -40,23 +40,37 @@
 PBS_DIR=$(readlink -f $0 | awk -F'/ci/' '{print $1}')
 cd ${PBS_DIR}
 
-yum clean all
-yum -y update
-yum -y install yum-utils epel-release rpmdevtools libasan llvm
+dnf clean all
+dnf -y install 'dnf-command(config-manager)'
+dnf -y config-manager --set-enabled PowerTools
+dnf -y install epel-release
+dnf -y update
+dnf -y install yum-utils rpmdevtools libasan llvm
 rpmdev-setuptree
-yum -y install python3-pip sudo which net-tools man-db time.x86_64
-yum-builddep -y ./*.spec
+dnf -y install python3-pip sudo which net-tools man-db time.x86_64
+dnf -y builddep ./*.spec
+# source install swig
+dnf -y install gcc-c++ byacc pcre-devel
+mkdir -p /tmp/swig/
+cd /tmp/swig
+git clone https://github.com/swig/swig --branch rel-4.0.0 --single-branch
+cd swig
+./autogen.sh
+./configure
+make -j8
+make install
+cd ${PBS_DIR}
 ./autogen.sh
 rm -rf target-sanitize
 mkdir -p target-sanitize
 cd target-sanitize
-../configure
+../configure --with-swig=/usr/local
 make dist
 cp -fv *.tar.gz /root/rpmbuild/SOURCES/
 CFLAGS="-g -O2 -Wall -Werror -fsanitize=address -fno-omit-frame-pointer" rpmbuild -bb --with ptl *.spec
-yum -y install /root/rpmbuild/RPMS/x86_64/*-server-??.*.x86_64.rpm
-yum -y install /root/rpmbuild/RPMS/x86_64/*-debuginfo-??.*.x86_64.rpm
-yum -y install /root/rpmbuild/RPMS/x86_64/*-ptl-??.*.x86_64.rpm
+dnf -y install /root/rpmbuild/RPMS/x86_64/*-server-??.*.x86_64.rpm
+dnf -y install /root/rpmbuild/RPMS/x86_64/*-debuginfo-??.*.x86_64.rpm
+dnf -y install /root/rpmbuild/RPMS/x86_64/*-ptl-??.*.x86_64.rpm
 sed -i "s@PBS_START_MOM=0@PBS_START_MOM=1@" /etc/pbs.conf
 /etc/init.d/pbs start
 set +e
