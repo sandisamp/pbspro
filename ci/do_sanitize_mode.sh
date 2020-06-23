@@ -67,7 +67,7 @@ cd target-sanitize
 ../configure --with-swig=/usr/local
 make dist
 cp -fv *.tar.gz /root/rpmbuild/SOURCES/
-CFLAGS="-g -O2 -Wall -Werror -fsanitize=address -fno-omit-frame-pointer" rpmbuild -bb --with ptl *.spec
+CFLAGS="-g -O2 -Wall -Werror -fsanitize=address -fno-omit-frame-pointer" rpmbuild -bb --with ptl --with src_swig *.spec
 dnf -y install /root/rpmbuild/RPMS/x86_64/*-server-??.*.x86_64.rpm
 dnf -y install /root/rpmbuild/RPMS/x86_64/*-debuginfo-??.*.x86_64.rpm
 dnf -y install /root/rpmbuild/RPMS/x86_64/*-ptl-??.*.x86_64.rpm

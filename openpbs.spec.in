@@ -95,6 +95,7 @@ Prefix: %{?pbs_prefix}%{!?pbs_prefix:%{_prefix}}
 %bcond_with alps
 %bcond_with ptl
 %bcond_with pmix
+%bcond_with src_swig
 
 BuildRoot: %{buildroot}
 BuildRequires: gcc
@@ -330,6 +331,9 @@ cd build
 %endif
 %if %{defined suse_version}
 	--libexecdir=%{pbs_prefix}/libexec \
+%endif
+%if %{with src_swig}
+	--with-swig=/usr/local
 %endif
 %if %{with alps}
 	--enable-alps \
