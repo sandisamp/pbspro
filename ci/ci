@@ -869,5 +869,6 @@ if __name__ == "__main__":
         ap.print_help()
         log_error(e)
 
+    log_info(not_local_run)
     if not_local_run:
         run_ci(build_pkgs)
