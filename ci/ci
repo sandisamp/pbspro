@@ -135,18 +135,18 @@ def run_cmd(cmd, return_output=False):
     Run a terminal command, and if needed return output of the command.
     '''
     cmd = shlex.split(cmd)
-    try:
-        a = subprocess.Popen(cmd, stdout=subprocess.PIPE)
-        out, err = a.communicate()
-        if a.returncode != 0:
-            log_error("command failed")
-            log_error(str(err))
-        else:
-            if return_output:
-                return str(out)
-    except Exception as e:
-        log_error("The command failed.")
-        log_error(e)
+    # try:
+    a = subprocess.Popen(cmd, stdout=subprocess.PIPE)
+    out, err = a.communicate()
+    if a.returncode != 0:
+        log_error("command failed")
+        log_error(str(err))
+    else:
+        if return_output:
+            return str(out)
+    # except Exception as e:
+    #     log_error("The command failed.")
+    #     # log_error(e)
 
 
 def run_docker_cmd(run_cmd, run_on='all'):
