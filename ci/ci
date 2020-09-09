@@ -735,17 +735,10 @@ def run_ci_local(local):
     # so we dont supress stdout and stderr
     if local == 'normal':
         exit_code = subprocess.run("./etc/do.sh")
-        try:
-            sys.exit(exit_code.returncode)
-        except Exception as e:
-            log_error(e)
-            os._exit()
+        os._exit()
     if local == 'sanitize':
         exit_code = subprocess.run("./etc/do_sanitize_mode.sh")
-        try:
-            sys.exit(exit_code.returncode)
-        except:
-            os._exit()
+        os._exit()
 
 
 def run_ci(build_pkgs=False):
