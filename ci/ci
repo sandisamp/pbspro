@@ -736,9 +736,11 @@ def run_ci_local(local):
     if local == 'normal':
         exit_code = subprocess.run("./etc/do.sh")
         sys.exit(exit_code.returncode)
+        os._exit()
     if local == 'sanitize':
         exit_code = subprocess.run("./etc/do_sanitize_mode.sh")
         sys.exit(exit_code.returncode)
+        os._exit()
 
 
 def run_ci(build_pkgs=False):
@@ -869,6 +871,4 @@ if __name__ == "__main__":
         ap.print_help()
         log_error(e)
 
-    log_info(not_local_run)
-    if not_local_run:
-        run_ci(build_pkgs)
+    run_ci(build_pkgs)
