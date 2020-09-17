@@ -646,7 +646,8 @@ def setup_config_dir():
     target_path = os.path.join(command_path, MACROS['CONF_JSON_FILE'])
     if not os.path.exists(target_path):
         value = '{ "configure": "--prefix=/opt/pbs '
-        value += '--enable-ptl", "tests" : "-t SmokeTest" }'
+        value += '--enable-ptl", "tests" : "-t SmokeTest", '
+        value += '"valgrind": false }'
         write_to_file(target_path, value)
     target_path = os.path.join(command_path, MACROS['CONFIGURE_OPT_FILE'])
     if not os.path.exists(target_path):
@@ -655,6 +656,10 @@ def setup_config_dir():
     target_path = os.path.join(command_path, MACROS['BENCHPRESS_OPT_FILE'])
     if not os.path.exists(target_path):
         value = "-t SmokeTest"
+        write_to_file(target_path, value)
+    target_path = os.path.join(command_path, MACROS['VALGRIND_FILE'])
+    if not os.path.exists(target_path):
+        value = "false"
         write_to_file(target_path, value)
     target_path = os.path.join(ci_dirname, 'docker-compose.json')
     if not os.path.exists(target_path):
@@ -766,6 +771,11 @@ def run_ci(build_pkgs=False):
         run_docker_cmd(build_cmd + ' | tee /logs/pkglogs',
                        run_on='server')
         sys.exit(0)
+    target_path = os.path.join(command_path, MACROS['VALGRIND_FILE'])
+    valgrind_value_changed = False
+    if conf_opts['valgrind'] != read_from_file(target_path):
+        write_to_file(target_path, conf_opts['valgrind'])
+        valgrind_value_changed = True
     if conf_opts['tests'] != '':
         target_path = os.path.join(command_path, MACROS['BENCHPRESS_OPT_FILE'])
         write_to_file(target_path, conf_opts['tests'])
@@ -773,7 +783,7 @@ def run_ci(build_pkgs=False):
             delete_ci()
             ensure_ci_running()
     target_path = os.path.join(command_path, MACROS['CONFIGURE_OPT_FILE'])
-    if conf_opts['configure'] != read_from_file(target_path):
+    if conf_opts['configure'] != read_from_file(target_path) or valgrind_value_changed:
         cmd = ' export ONLY_CONFIGURE=1 && /src/etc/do.sh 2>&1 \
             | tee -a /logs/build-$(hostname -s) '
         run_docker_cmd(cmd)

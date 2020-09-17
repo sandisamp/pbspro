@@ -51,6 +51,12 @@ if [ -f /src/ci ]; then
   logdir=/logs
   chmod -R 755 ${logdir}
   PBS_DIR=/pbssrc
+  IS_VALGRIND=$(cat /src/${CONFIG_DIR}/${VALGRIND_FILE})
+  if [ "x${IS_VALGRIND}" == "xtrue" -o "x${IS_VALGRIND}" == "xTrue" -o "x${IS_VALGRIND}" == "x1" ]; then
+    IS_VALGRIND=1
+  else
+    IS_VALGRIND=0
+  fi
 else
   PBS_DIR=$(readlink -f $0 | awk -F'/ci/' '{print $1}')
 fi
@@ -154,6 +160,29 @@ fi
 if [ "x${ONLY_INSTALL_DEPS}" == "x1" ]; then
   exit 0
 fi
+
+if [ "x${IS_VALGRIND}" == "x1" ]; then
+  val_python_dir=/tmp/val_python_dir
+  mkdir -p ${val_python_dir}
+  cd ${val_python_dir}
+  if [ ! -f ${val_python_dir}/val_python/bin/python3 ]; then
+    pyv="3.6.9"
+    wget https://www.python.org/ftp/python/${pyv}/Python-${pyv}.tgz
+    tar -xf Python-${pyv}.tgz
+    mv Python-${pyv} Python
+    rm -f Python-${pyv}.tgz
+    mkdir val_python
+    val_python_dir=$(pwd)/val_python/
+    cd Python
+    ./configure --prefix=${val_python_dir} --with-pydebug --with-valgrind --without-pymalloc
+    make -j8
+    make install
+    cd ..
+    rm -rf ./Python
+  fi
+  cd ${PBS_DIR}
+fi
+
 _targetdirname=target-${ID}-$(hostname -s)
 if [ "x${ONLY_INSTALL}" != "x1" -a "x${ONLY_REBUILD}" != "x1" -a "x${ONLY_TEST}" != "x1" ]; then
   rm -rf ${_targetdirname}
@@ -180,7 +209,12 @@ if [ "x${ONLY_REBUILD}" != "x1" -a "x${ONLY_INSTALL}" != "x1" -a "x${ONLY_TEST}"
     else
       configure_opt='--prefix=/opt/pbs --enable-ptl'
     fi
-    if [ -z ${_cflags} ]; then
+    echo "val_check"
+    if [ "x${IS_VALGRIND}" == "x1" ]; then
+      _cflags="${_cflags} -g -DPy_DEBUG -DDEBUG -Wall -Werror"
+      configure_opt="${configure_opt} --with-python=${val_python_dir}"
+    fi
+    if [ -z "${_cflags}" ]; then
       ../configure ${configure_opt} ${swig_opt}
     else
       ../configure CFLAGS="${_cflags}" ${configure_opt} ${swig_opt}
@@ -233,6 +267,10 @@ if [ "x${ONLY_TEST}" != "x1" ]; then
     else
       configure_opt='--prefix=/opt/pbs --enable-ptl'
     fi
+    if [ "x${IS_VALGRIND}" == "x1" ]; then
+      _cflags="${_cflags} -g -DPy_DEBUG -DDEBUG -Wall -Werror"
+      configure_opt="${configure_opt} --with-python=${val_python_dir}"
+    fi
     if [ -z ${_cflags} ]; then
       ../configure ${configure_opt}
     else
@@ -248,7 +286,29 @@ if [ "x${ONLY_TEST}" != "x1" ]; then
     if [ "x$IS_CI_BUILD" == "x1" ]; then
       /src/etc/configure_node.sh
     fi
-    /etc/init.d/pbs restart
+
+    if [ "x${IS_VALGRIND}" == "x1" ]; then
+      /etc/init.d/pbs stop
+      time_stamp=$(date -u "+%Y-%m-%d-%H%M%S")
+      suppression_file=${PBS_DIR}/valgrind.supp
+      export PGSQL_BIN=/usr/bin
+      export LD_LIBRARY_PATH=/opt/pbs/pgsql/lib:/opt/pbs/lib:$LD_LIBRARY_PATH
+      . /etc/pbs.conf
+      if [ "x${PBS_START_SERVER}" == "x1" ]; then
+        valgrind --tool=memcheck --log-file=${logdir}/val-server-$(hostname -s)-${time_stamp}.out --suppressions=${suppression_file} --leak-check=full --track-origins=yes /opt/pbs/sbin/pbs_server.bin
+      fi
+      if [ "x${PBS_START_MOM}" == "x1" ]; then
+        valgrind --tool=memcheck --log-file=${logdir}/val-mom-$(hostname -s)-${time_stamp}.out --suppressions=${suppression_file} --leak-check=full --track-origins=yes /opt/pbs/sbin/pbs_mom
+      fi
+      if [ "x${PBS_START_COMM}" == "x1" ]; then
+        valgrind --tool=memcheck --log-file=${logdir}/val-comm-$(hostname -s)-${time_stamp}.out --suppressions=${suppression_file} --leak-check=full --track-origins=yes /opt/pbs/sbin/pbs_comm
+      fi
+      if [ "x${PBS_START_SCHED}" == "x1" ]; then
+        valgrind --tool=memcheck --log-file=${logdir}/val-sched-$(hostname -s)-${time_stamp}.out --suppressions=${suppression_file} --leak-check=full --track-origins=yes /opt/pbs/sbin/pbs_sched
+      fi
+    else
+      /etc/init.d/pbs restart
+    fi
   fi
 fi
 
