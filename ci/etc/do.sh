@@ -57,9 +57,65 @@ if [ -f /src/ci ]; then
   else
     IS_VALGRIND=0
   fi
+  time_stamp=$(date -u "+%Y-%m-%d-%H%M%S")
 else
   PBS_DIR=$(readlink -f $0 | awk -F'/ci/' '{print $1}')
 fi
+
+generate_valgrind_wrapper() {
+  srcbin="${1}"
+  binname="$(basename ${srcbin})"
+  destbin="${srcbin}.vlgd"
+  mkdir -p ${logdir}/valgrind_logs/${time_stamp}/${binname}_$(hostname -s)
+  touch ${logdir}/valgrind_logs/${time_stamp}/${binname}_$(hostname -s).log
+  chmod +x ${logdir}/valgrind_logs/${time_stamp}/${binname}_$(hostname -s).log
+  if [ -x "${srcbin}" ]; then
+    __val_opts='--tool=memcheck --leak-check=full --track-origins=no'
+    __val_opts="${__val_opts} --child-silent-after-fork=yes"
+    __val_opts="${__val_opts} --redzone-size=256 --track-fds=yes"
+    __val_opts="${__val_opts} --log-file=${logdir}/valgrind_logs/${time_stamp}/${binname}_$(hostname -s).log"
+    __val_opts="${__val_opts} --xml=yes --xml-file=${logdir}/valgrind_logs/${time_stamp}/${binname}_$(hostname -s).xml"
+    __val_opts="${__val_opts} --vgdb=no --gen-suppressions=all"
+    # if [ -f /opt/pbs_valgrind.supp ]; then
+    #   __val_opts="${__val_opts} --suppressions=/opt/pbs_valgrind.supp"
+    # fi
+    if [ -f $2 ]; then
+      __val_opts="${__val_opts} --suppressions=$2"
+    fi
+    if [ ! -x "${destbin}" ]; then
+      mv "${srcbin}" "${destbin}"
+      if [ $? -ne 0 ]; then
+        echo "Failed to copy \"${srcbin}\" to \"${destbin}\""
+        exit 1
+      fi
+    fi
+    {
+      echo '#!/bin/bash'
+      echo 'rm -f /tmp/valgrind_logs/*/*.log.core.* &>/dev/null'
+      echo 'if [ "$1" == "--version" ]; then'
+      echo "  ${destbin} --version"
+      echo 'else'
+      echo "  valgrind ${__val_opts} ${destbin} -N \"\$@\" &"
+      if [ "X${binname}X" == "Xpbs_server.binX" ]; then
+        echo '  sleep 15'
+      else
+        echo '  sleep 1'
+      fi
+      echo 'fi'
+    } >/tmp/valwrapper
+    mv /tmp/valwrapper "${srcbin}"
+    if [ $? -ne 0 ]; then
+      echo "Failed to copy valwrapper to \"${srcbin}\""
+      exit 1
+    else
+      echo "*** Generated valgrind wrapper for ${srcbin}"
+      echo "========================================"
+      cat "${srcbin}"
+      echo "========================================"
+    fi
+    chmod +x "${srcbin}"
+  fi
+}
 
 cd ${PBS_DIR}
 . /etc/os-release
@@ -162,6 +218,7 @@ if [ "x${ONLY_INSTALL_DEPS}" == "x1" ]; then
 fi
 
 if [ "x${IS_VALGRIND}" == "x1" ]; then
+  python3 -m pip install xmltodict
   val_python_dir=/tmp/val_python_dir
   mkdir -p ${val_python_dir}
   cd ${val_python_dir}
@@ -289,26 +346,24 @@ if [ "x${ONLY_TEST}" != "x1" ]; then
 
     if [ "x${IS_VALGRIND}" == "x1" ]; then
       /etc/init.d/pbs stop
-      time_stamp=$(date -u "+%Y-%m-%d-%H%M%S")
       suppression_file=${PBS_DIR}/valgrind.supp
       export PGSQL_BIN=/usr/bin
       export LD_LIBRARY_PATH=/opt/pbs/pgsql/lib:/opt/pbs/lib:$LD_LIBRARY_PATH
       . /etc/pbs.conf
       if [ "x${PBS_START_SERVER}" == "x1" ]; then
-        valgrind --tool=memcheck --log-file=${logdir}/val-server-$(hostname -s)-${time_stamp}.out --suppressions=${suppression_file} --leak-check=full --track-origins=yes /opt/pbs/sbin/pbs_server.bin
+        generate_valgrind_wrapper /opt/pbs/sbin/pbs_server.bin ${suppression_file}
       fi
       if [ "x${PBS_START_MOM}" == "x1" ]; then
-        valgrind --tool=memcheck --log-file=${logdir}/val-mom-$(hostname -s)-${time_stamp}.out --suppressions=${suppression_file} --leak-check=full --track-origins=yes /opt/pbs/sbin/pbs_mom
+        generate_valgrind_wrapper /opt/pbs/sbin/pbs_mom ${suppression_file}
       fi
       if [ "x${PBS_START_COMM}" == "x1" ]; then
-        valgrind --tool=memcheck --log-file=${logdir}/val-comm-$(hostname -s)-${time_stamp}.out --suppressions=${suppression_file} --leak-check=full --track-origins=yes /opt/pbs/sbin/pbs_comm
+        generate_valgrind_wrapper /opt/pbs/sbin/pbs_comm ${suppression_file}
       fi
       if [ "x${PBS_START_SCHED}" == "x1" ]; then
-        valgrind --tool=memcheck --log-file=${logdir}/val-sched-$(hostname -s)-${time_stamp}.out --suppressions=${suppression_file} --leak-check=full --track-origins=yes /opt/pbs/sbin/pbs_sched
+        generate_valgrind_wrapper /opt/pbs/sbin/pbs_sched ${suppression_file}
       fi
-    else
-      /etc/init.d/pbs restart
     fi
+    /etc/init.d/pbs restart
   fi
 fi
 
@@ -335,7 +390,6 @@ if [ "x${RUN_TESTS}" == "x1" ]; then
   eval_tag="$(echo ${benchpress_opt} | awk -F'"' '{print $2}')"
   benchpress_opt="$(echo ${benchpress_opt} | sed -e 's/--eval-tags=\".*\"//g')"
   params="--param-file=${config_dir}/${PARAM_FILE}"
-  time_stamp=$(date -u "+%Y-%m-%d-%H%M%S")
   ptl_log_file=${logdir}/logfile-${time_stamp}
   chown pbsroot ${logdir}
   if [ -z "${eval_tag}" ]; then
