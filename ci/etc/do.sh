@@ -397,6 +397,9 @@ if [ "x${RUN_TESTS}" == "x1" ]; then
   else
     sudo -Hiu pbsroot pbs_benchpress --eval-tags="'${eval_tag}'" ${benchpress_opt} --db-type=html --db-name=${logdir}/result.html -o ${ptl_log_file} ${params}
   fi
+  if [ "x${IS_VALGRIND}" == "x1" ]; then
+    /src/etc/parse-valsupp.py ${logdir}/valgrind_logs/ ${logdir}/valsupp_parsed.log
+  fi
 fi
 
 if [ "x${IS_CI_BUILD}" != "x1" ]; then
